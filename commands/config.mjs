@@ -31,7 +31,7 @@ const projectChoices = [
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const configDir = join(__dirname, '.config');
+const configDir = join(__dirname, '../.config');
 const configFilePath = join(configDir, 'config.json');
 
 if (!fs.existsSync(configDir)) {
@@ -106,7 +106,7 @@ export default async () => {
       type: 'text',
       name: 'jiraTicketPrefix',
       message: `Ticket Prefix? \n e.g. ${jiraProject}-1819 ${chalk.bgGreen('[BE] ')}user input\n`,
-      initial: ''
+      initial: configJson?.jiraTicketPrefix,
     },
     {
       type: 'text',
@@ -120,7 +120,7 @@ export default async () => {
     ...answers,
     jiraProject,
     jiraBoardId,
-    jiraTicketPrefix,
+    jiraTicketPrefix: jiraTicketPrefix || '',
     jiraAccountId,
     gitlabAccessToken,
     projectChoices,
