@@ -1,0 +1,24 @@
+{
+    "name": "jira-help",
+    "version": "1.0.0",
+    "description": "A CLI tool to configure and manage Jira settings.",
+    "main": "index.mjs",
+    "type": "module",
+    "bin": {
+        "jira-help": "index.mjs"
+    },
+    "scripts": {
+        "start": "node index.mjs"
+    },
+    "author": "Allen Wong",
+    "license": "MIT",
+    "dependencies": {
+        "axios": "^1.6.7",
+        "chalk": "^5.0.0",
+        "commander": "^12.1.0",
+        "csv-reader": "^1.0.9",
+        "lodash": "^4.17.21",
+        "prompts": "^2.4.2",
+        "simple-git": "^3.22.0"
+    }
+}
