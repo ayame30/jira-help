@@ -1,33 +1,32 @@
-import selectJiraIssue from './select-jira-issue.mjs';
-import createBranch from './create-branch.mjs';
-import createMergeRequest from './create-merge-request.mjs';
-import updateJiraStatus from './update-jira-status.mjs';
-import { execAsync, confirm } from '../utils.mjs';
-
+import selectJiraIssue from "./select-jira-issue.mjs";
+import createBranch from "./create-branch.mjs";
+import createMergeRequest from "./create-merge-request.mjs";
+import updateJiraStatus from "./update-jira-status.mjs";
+import { execAsync, confirm } from "../utils.mjs";
+import createCommit from "./create-commit.mjs";
 
 export default async (config) => {
   const selectedIssue = await selectJiraIssue(config);
 
-  if (await confirm('Checkout to new branch?')) {
+  if (await confirm("Checkout to new branch?")) {
     await createBranch(selectedIssue, config);
   }
 
-  if (await confirm('Checkout to commit?')) {
+  if (await confirm("Checkout to commit?")) {
     const { commitName } = await createCommit(selectedIssue);
-    await execAsync('git add .');
+    await execAsync("git add .");
     await execAsync(`git commit -m "${commitName}"`);
   }
 
-  if (await confirm('Git Push?')) {
-    await execAsync('git push origin HEAD');
+  if (await confirm("Git Push?")) {
+    await execAsync("git push origin HEAD");
   }
 
-  if (await confirm('Create MR?')) {
+  if (await confirm("Create MR?")) {
     await createMergeRequest(config);
   }
 
-  if (await confirm('Update ticket status')) {
+  if (await confirm("Update ticket status")) {
     await updateJiraStatus(selectedIssue, config);
   }
-
 };

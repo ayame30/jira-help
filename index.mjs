@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 
-import runConfig, { loadConfig } from './commands/config.mjs';
-import selectTicket from './commands/select-jira-issue.mjs';
-import createTicket from './commands/create-jira-issue.mjs';
-import createBranch from './commands/create-branch.mjs';
-import createCommit from './commands/create-commit.mjs';
-import createMergeRequest from './commands/create-merge-request.mjs';
-import updateJiraStatus from './commands/update-jira-status.mjs';
-import index from './commands/index.mjs';
-import { Command } from 'commander';
-const [,, command] = process.argv;
+import runConfig, { loadConfig } from "./commands/config.mjs";
+import selectTicket from "./commands/select-jira-issue.mjs";
+import createTicket from "./commands/create-jira-issue.mjs";
+import createBranch from "./commands/create-branch.mjs";
+import createCommit from "./commands/create-commit.mjs";
+import createMergeRequest from "./commands/create-merge-request.mjs";
+import updateJiraStatus from "./commands/update-jira-status.mjs";
+import index from "./commands/index.mjs";
+import { Command } from "commander";
+import { confirm } from "./utils.mjs";
+
+const [, , command] = process.argv;
 
 const mapping = {
   config: () => {
@@ -18,7 +20,7 @@ const mapping = {
   ticket: async () => {
     const config = loadConfig();
     const issue = await createTicket(config);
-    if (await confirm('Update ticket status')) {
+    if (await confirm("Update ticket status")) {
       await updateJiraStatus(issue, config);
     }
   },
@@ -41,7 +43,7 @@ const mapping = {
     const issue = await selectTicket(config);
     await updateJiraStatus(issue, config);
   },
-  '': async () => {
+  "": async () => {
     await index(loadConfig());
   },
 };
@@ -50,29 +52,16 @@ if (mapping[command]) {
   mapping[command]();
 } else {
   const program = new Command();
-  program
-    .command('config')
-    .description('Setup configuration')
-  program
-    .command('ticket')
-    .description('Create Jira Ticket')
+  program.command("config").description("Setup configuration");
+  program.command("ticket").description("Create Jira Ticket");
 
-  program
-    .command('branch')
-    .description('Select ticket and create branch')
+  program.command("branch").description("Select ticket and create branch");
 
-  program
-    .command('commit')
-    .description('Select ticket and create commit')
+  program.command("commit").description("Select ticket and create commit");
 
-  program
-    .command('mr')
-    .description('Merge Request based on current branch')
+  program.command("mr").description("Merge Request based on current branch");
 
-  program
-    .command('status')
-    .description('Update Jira ticket status')
+  program.command("status").description("Update Jira ticket status");
 
   program.parse();
 }
-
