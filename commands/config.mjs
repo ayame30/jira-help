@@ -2,9 +2,9 @@ import fs from "fs";
 import prompts from "prompts";
 import chalk from "chalk";
 import { displayConfig } from "../utils.mjs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import JiraApiClient from "../api-clients/jira-api-client.mjs";
+import { homedir } from 'os';
 
 const projectChoices = [
   { title: "No Prefix", value: "" },
@@ -27,11 +27,10 @@ const projectChoices = [
   { title: "[Newspresso] ", value: "[Newspresso] " },
 ];
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
-const configDir = join(__dirname, "../.config");
+const configDir = join(homedir(), "/.config/jira-help");
 const configFilePath = join(configDir, "config.json");
+console.log(configFilePath);
 
 if (!fs.existsSync(configDir)) {
   fs.mkdirSync(configDir, { recursive: true });
@@ -66,7 +65,7 @@ export default async () => {
         name: "atlassianDomain",
         message: "Enter your Jira atlassian domain:",
         initial:
-          configJson?.atlassianDomain || "https://nowwwhat.atlassian.net",
+          configJson?.atlassianDomain || "https://domain.atlassian.net",
       },
       {
         type: "text",
