@@ -75,7 +75,7 @@ export default async (config) => {
   }
 
   if (await confirm("Assign to yourself?")) {
-    data.fields.assignee = { accountId: config.accountId };
+    data.fields.assignee = { accountId: config.jiraAccountId };
   }
 
   const ticket = await jiraApiClient.createTicket(data);
