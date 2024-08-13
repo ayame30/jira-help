@@ -49,7 +49,7 @@ export default async (config) => {
       project: {
         key: config.jiraProject,
       },
-      summary: title,
+      summary: ticketPrefix + title,
       description: {
         content: [
           {

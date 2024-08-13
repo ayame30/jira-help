@@ -43,12 +43,11 @@ const mapping = {
     const issue = await selectTicket(config);
     await updateJiraStatus(issue, config);
   },
-  "": async () => {
-    await index(loadConfig());
-  },
 };
 
-if (mapping[command]) {
+if (!command) {
+  index(loadConfig());
+} else if (mapping[command]) {
   mapping[command]();
 } else {
   const program = new Command();

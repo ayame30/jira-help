@@ -1,14 +1,10 @@
 import { promptText, execAsync } from "../utils.mjs";
 import prompts from "prompts";
 
-function issueToCommitName(type, issue) {
-  const ticketNumber = issue.key;
-  const cleanedString = issue.summary.replace(/\[.*?\]/g, "").trim();
-
-  return `[${ticketNumber}] ${type}: ${cleanedString}`;
-}
-
 export default async (selectedIssue, _config) => {
+  const ticketNumber = selectedIssue.key;
+  const cleanedString = selectedIssue.summary.replace(/\[.*?\]/g, "").trim();
+
   const { type } = await prompts(
     [
       {
@@ -28,12 +24,15 @@ export default async (selectedIssue, _config) => {
     ],
     { onCancel: () => process.exit(0) },
   );
+  await execAsync("git status");
   const commitName = await promptText(
-    "Commit",
-    issueToCommitName(type, selectedIssue),
+    `Commit all changes - [${ticketNumber}] ${type}: `,
+    cleanedString,
   );
   await execAsync("git add .");
-  await execAsync(`git commit -m "${commitName}"`);
+  await execAsync(
+    `git commit -a -m "[${ticketNumber}] ${type}: ${commitName}"`,
+  );
 
   return { type, commitName };
 };

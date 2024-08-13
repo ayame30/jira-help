@@ -4,10 +4,10 @@ import chalk from "chalk";
 import { displayConfig } from "../utils.mjs";
 import { join } from "path";
 import JiraApiClient from "../api-clients/jira-api-client.mjs";
-import { homedir } from 'os';
+import { homedir } from "os";
 
 const projectChoices = [
-  { title: "No Prefix", value: "" },
+  { title: "(No Prefix)", value: "" },
   { title: "[Content] ", value: "[Content] " },
   { title: "[Distribution] ", value: "[Distribution] " },
   { title: "[Video] ", value: "[Video] " },
@@ -26,7 +26,6 @@ const projectChoices = [
   { title: "[Gateway] ", value: "[Gateway] " },
   { title: "[Newspresso] ", value: "[Newspresso] " },
 ];
-
 
 const configDir = join(homedir(), "/.config/jira-help");
 const configFilePath = join(configDir, "config.json");
@@ -64,8 +63,7 @@ export default async () => {
         type: "text",
         name: "atlassianDomain",
         message: "Enter your Jira atlassian domain:",
-        initial:
-          configJson?.atlassianDomain || "https://domain.atlassian.net",
+        initial: configJson?.atlassianDomain || "https://domain.atlassian.net",
       },
       {
         type: "text",

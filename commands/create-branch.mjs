@@ -1,9 +1,9 @@
 import { promptText, execAsync } from "../utils.mjs";
 import prompts from "prompts";
 
-async function issueToBranchName(type, issue) {
-  const ticketNumber = issue.key;
-  const cleanedString = issue.summary
+export default async (selectedIssue, _config) => {
+  const ticketNumber = selectedIssue.key;
+  const cleanedString = selectedIssue.summary
     .replace(/\[.*?\]/g, "")
     .trim()
     .replace(/[^\w\s]/g, "-")
@@ -11,10 +11,6 @@ async function issueToBranchName(type, issue) {
     .replace(/-+/g, "-");
   const branchDesc = cleanedString.toLowerCase();
 
-  return `${type}/${ticketNumber}/${branchDesc}`;
-}
-
-export default async (selectedIssue, _config) => {
   const { type } = await prompts(
     [
       {
@@ -35,10 +31,10 @@ export default async (selectedIssue, _config) => {
     { onCancel: () => process.exit(0) },
   );
   const branchName = await promptText(
-    "Branch Name",
-    await issueToBranchName(type, selectedIssue),
+    `Branch Name - ${type}/${ticketNumber}/`,
+    branchDesc,
   );
-  await execAsync(`git checkout -b ${branchName}`);
+  await execAsync(`git checkout -b ${type}/${ticketNumber}/${branchName}`);
 
   return { type, branchName };
 };

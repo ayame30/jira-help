@@ -42,7 +42,5 @@ export default async (config) => {
     selectedIssue = issue;
   }
 
-  await jiraApiClient.transitions(issue.key);
-
   return selectedIssue;
 };

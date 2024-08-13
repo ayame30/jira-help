@@ -13,9 +13,7 @@ export default async (config) => {
   }
 
   if (await confirm("Checkout to commit?")) {
-    const { commitName } = await createCommit(selectedIssue);
-    await execAsync("git add .");
-    await execAsync(`git commit -m "${commitName}"`);
+    await createCommit(selectedIssue);
   }
 
   if (await confirm("Git Push?")) {
