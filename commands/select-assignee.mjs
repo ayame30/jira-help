@@ -20,11 +20,11 @@ export default async (config) => {
         message: `Assignee`,
         choices: [
           {
-            title: chalk.gray("Keep unassigned"),
+            title: "Keep unassigned",
             value: undefined,
           },
           {
-            title: chalk.gray("Assign to me"),
+            title: "Assign to me",
             value: config.jiraAccountId,
           },
           {
@@ -46,15 +46,15 @@ export default async (config) => {
           message: `Other Assignee`,
           choices: [
             {
-              title: chalk.gray("Keep unassigned"),
+              title: "Keep unassigned",
               value: undefined,
             },
             {
-              title: chalk.gray("Assign to me"),
+              title: "Assign to me",
               value: config.jiraAccountId,
             },
             ...assignees.map((assignee) => ({
-              title: `${assignee.displayName} \t(${assignee.emailAddress})`,
+              title: `${assignee.displayName} (${assignee.emailAddress})`,
               value: assignee.accountId,
             })),
           ],
