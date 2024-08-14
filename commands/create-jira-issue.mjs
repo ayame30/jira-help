@@ -1,6 +1,7 @@
 import prompts from "prompts";
 import { confirm } from "../utils.mjs";
 import JiraApiClient from "../api-clients/jira-api-client.mjs";
+import selectAssignee from "./select-assignee.mjs";
 
 export default async (config) => {
   const jiraApiClient = new JiraApiClient(
@@ -74,9 +75,7 @@ export default async (config) => {
     data.fields.customfield_10010 = currentSprint.id;
   }
 
-  if (await confirm("Assign to yourself?")) {
-    data.fields.assignee = { accountId: config.jiraAccountId };
-  }
+  data.fields.assignee = await selectAssignee(config);
 
   const ticket = await jiraApiClient.createTicket(data);
 

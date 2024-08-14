@@ -111,8 +111,33 @@ export default class JiraApiClient {
     return jiraAccountId;
   }
 
-  async tickets(projectKey) {
-    const JIRA_QUERY = `project = ${projectKey} AND assignee=currentuser() AND resolution=Unresolved AND status!=Closed`;
+  async assignees(projectKey) {
+    const response = await axios.get(
+      `${this.jiraRestApiHost}/user/assignable/search?project=${projectKey}`,
+      {
+        headers: this.headers,
+      },
+    );
+    return response.data.map((user) => ({
+      accountId: user.accountId,
+      displayName: user.displayName,
+      emailAddress: user.emailAddress,
+    }));
+  }
+
+  async tickets(
+    projectKey,
+    { withClosed = false, withUnassigned = false } = {},
+  ) {
+    let JIRA_QUERY = `project = ${projectKey} AND assignee=currentuser() AND resolution=Unresolved AND status!=Closed`;
+
+    if (withClosed) {
+      JIRA_QUERY = `project = ${projectKey} AND assignee=currentuser()`;
+    }
+
+    if (withUnassigned) {
+      JIRA_QUERY = `project = ${projectKey} AND assignee=null AND resolution=Unresolved AND status!=Closed`;
+    }
 
     try {
       const response = await axios.get(
@@ -121,7 +146,6 @@ export default class JiraApiClient {
           headers: this.headers,
         },
       );
-
       return response.data.issues.map((issue) => ({
         status: issue.fields.status.name,
         key: issue.key,
@@ -132,6 +156,7 @@ export default class JiraApiClient {
           issue.fields.customfield_10010[
             issue.fields.customfield_10010.length - 1
           ]?.name,
+        assignee: issue.fields.assignee,
       }));
     } catch (error) {
       console.log(error.response);

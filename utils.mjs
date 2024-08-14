@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import prompts from "prompts";
 import { exec } from "child_process";
+import _ from "lodash";
 
 function displayConfig(config) {
   if (config) {
@@ -54,27 +55,44 @@ async function execAsync(cmd) {
   });
 }
 
-const sprintLengthMin = 16;
-const statusMinLength = 16;
-
-function getColoredSprint(sprintName) {
+function getColoredSprint(sprintName, sprintLengthMin) {
   return sprintName
-    ? chalk.bgGreen(sprintName.padEnd(sprintLengthMin, " "))
-    : chalk.bgBlue("Backlog".padEnd(sprintLengthMin, " "));
+    ? chalk.bgGreen(` ${sprintName.padEnd(sprintLengthMin, " ")} `)
+    : chalk.bgBlue(` ${"Backlog".padEnd(sprintLengthMin, " ")} `);
 }
 
-function getColoredStatus(status) {
+function getColoredStatus(status, statusMinLength) {
+  const str = status.padEnd(statusMinLength, " ");
   if (status === "To Do") {
-    return chalk.grey(status.padEnd(statusMinLength, " "));
+    return chalk.grey(str);
   }
   if (status === "In Progress") {
-    return chalk.blueBright(status.padEnd(statusMinLength, " "));
+    return chalk.blueBright(str);
   }
-  return chalk.magenta(status.padEnd(statusMinLength, " "));
+  return chalk.magenta(str);
 }
 
-function getTicketTitle(issue) {
-  return `${getColoredSprint(issue.sprintName)} | ${getColoredStatus(issue.status)} | ${issue.key} ${issue.summary}`;
+function getTicketTitle(issue, allIssuesArray) {
+  const keyLength = issue.key.split("-")?.[0]?.length || 0;
+  const sprintLengthMin = allIssuesArray
+    ? _.maxBy(allIssuesArray, (o) => o.sprintName?.length ?? 7).sprintName
+        ?.length
+    : 7;
+  const statusMinLength = allIssuesArray
+    ? _.maxBy(allIssuesArray, (o) => o.status?.length ?? 5).status?.length
+    : 5;
+  const summaryMinLength = allIssuesArray
+    ? _.maxBy(allIssuesArray, (o) => o.summary?.length ?? 5).summary?.length
+    : 5;
+  const ticketMinLength = 5;
+
+  return [
+    getColoredSprint(issue.sprintName, sprintLengthMin),
+    getColoredStatus(issue.status, statusMinLength),
+    chalk.cyan(issue.key.padEnd(ticketMinLength + keyLength, " ")),
+    issue.summary.padEnd(summaryMinLength, " "),
+    issue.assignee?.displayName || "(Unassigned)",
+  ].join("   ");
 }
 
 export { displayConfig, confirm, promptText, execAsync, getTicketTitle };
