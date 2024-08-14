@@ -77,7 +77,7 @@ export default async (config) => {
     selectedIssue = issue;
   }
 
-  if (issue.create) {
+  if (selectedIssue.create) {
     selectedIssue = await createJiraIssue(config);
   }
 
