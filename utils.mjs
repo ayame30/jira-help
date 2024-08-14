@@ -61,7 +61,7 @@ function getColoredSprint(sprintName, sprintLengthMin) {
     : chalk.bgBlue(` ${"Backlog".padEnd(sprintLengthMin, " ")} `);
 }
 
-function getColoredStatus(status, statusMinLength) {
+export function getColoredStatus(status, statusMinLength) {
   const str = status.padEnd(statusMinLength, " ");
   if (status === "To Do") {
     return chalk.grey(str);
@@ -91,8 +91,47 @@ function getTicketTitle(issue, allIssuesArray) {
     getColoredStatus(issue.status, statusMinLength),
     chalk.cyan(issue.key.padEnd(ticketMinLength + keyLength, " ")),
     issue.summary.padEnd(summaryMinLength, " "),
-    issue.assignee?.displayName || "(Unassigned)",
+    issue.assignee
+      ? chalk.hex(randomRGBVisibleColorHashByString(issue.assignee.accountId))(
+          issue.assignee?.displayName,
+        )
+      : chalk.grey("(Unassigned)"),
   ].join("   ");
+}
+
+function randomRGBVisibleColorHashByString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const r = Math.abs((hash & 0xff0000) >> 16);
+  const g = Math.abs((hash & 0x00ff00) >> 8);
+  const b = Math.abs(hash & 0x0000ff);
+
+  // Ensure the color is visible by adjusting brightness
+  const minBrightness = 128; // Minimum brightness to ensure visibility
+  const maxBrightness = 230; // Maximum brightness to avoid very light colors
+
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+  let adjustedR = r;
+  let adjustedG = g;
+  let adjustedB = b;
+
+  if (brightness < minBrightness) {
+    const factor = minBrightness / brightness;
+    adjustedR = Math.min(255, Math.floor(r * factor));
+    adjustedG = Math.min(255, Math.floor(g * factor));
+    adjustedB = Math.min(255, Math.floor(b * factor));
+  } else if (brightness > maxBrightness) {
+    const factor = maxBrightness / brightness;
+    adjustedR = Math.floor(r * factor);
+    adjustedG = Math.floor(g * factor);
+    adjustedB = Math.floor(b * factor);
+  }
+
+  return `#${adjustedR.toString(16).padStart(2, "0")}${adjustedG.toString(16).padStart(2, "0")}${adjustedB.toString(16).padStart(2, "0")}`;
 }
 
 export { displayConfig, confirm, promptText, execAsync, getTicketTitle };

@@ -182,6 +182,7 @@ export default class JiraApiClient {
         issue.fields.customfield_10010[
           issue.fields.customfield_10010.length - 1
         ]?.name,
+      assignee: issue.fields.assignee,
     };
   }
 

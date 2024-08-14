@@ -1,6 +1,6 @@
 import prompts from "prompts";
 import JiraApiClient from "../api-clients/jira-api-client.mjs";
-import { getTicketTitle } from "../utils.mjs";
+import { getTicketTitle, getColoredStatus } from "../utils.mjs";
 
 export default async (issue, config) => {
   const jiraApiClient = new JiraApiClient(
@@ -22,7 +22,7 @@ export default async (issue, config) => {
           ...transitions
             .filter((transition) => transition.name !== issue.status)
             .map((transition) => ({
-              title: transition.name,
+              title: getColoredStatus(transition.name),
               value: transition.id,
             })),
         ],
