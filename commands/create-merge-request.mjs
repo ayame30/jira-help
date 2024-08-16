@@ -1,7 +1,12 @@
 import GitlabApiClient from "../api-clients/gitlab-api-client.mjs";
 import { promptText, execAsync } from "../utils.mjs";
+import { confirm } from "../utils.mjs";
 
 export default async (config) => {
+  if (await confirm("Git Push?")) {
+    await execAsync("git push origin HEAD");
+  }
+
   const remote = await execAsync("git remote get-url origin");
   const projectPath = remote.split(":")[1].replace(".git", "");
   const currentBranchName = (

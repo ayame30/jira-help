@@ -2,7 +2,7 @@ import selectJiraIssue from "./select-jira-issue.mjs";
 import createBranch from "./create-branch.mjs";
 import createMergeRequest from "./create-merge-request.mjs";
 import updateJiraStatus from "./update-jira-status.mjs";
-import { execAsync, confirm } from "../utils.mjs";
+import { confirm } from "../utils.mjs";
 import createCommit from "./create-commit.mjs";
 
 export default async (config) => {
@@ -14,10 +14,6 @@ export default async (config) => {
 
   if (await confirm("Checkout to commit?")) {
     await createCommit(selectedIssue);
-  }
-
-  if (await confirm("Git Push?")) {
-    await execAsync("git push origin HEAD");
   }
 
   if (await confirm("Create MR?")) {
