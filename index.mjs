@@ -9,6 +9,7 @@ import createMergeRequest from "./commands/create-merge-request.mjs";
 import updateJiraStatus from "./commands/update-jira-status.mjs";
 import index from "./commands/index.mjs";
 import { Command } from "commander";
+import * as openurl from "openurl";
 import { confirm } from "./utils.mjs";
 
 const [, , command] = process.argv;
@@ -43,6 +44,16 @@ const mapping = {
     const issue = await selectTicket(config);
     await updateJiraStatus(issue, config);
   },
+  open: async () => {
+    const [, , , secondCommand] = process.argv;
+    const config = loadConfig();
+    let url =
+      secondCommand === "backlog"
+        ? `${config.atlassianDomain}/jira/software/c/projects/${config.jiraProject}/boards/${config.jiraBoardId}/backlog?assignee=${config.jiraAccountId}`
+        : `${config.atlassianDomain}/jira/software/c/projects/${config.jiraProject}/boards/${config.jiraBoardId}?assignee=${config.jiraAccountId}`;
+    console.log(url);
+    openurl.open(url);
+  },
 };
 
 if (!command) {
@@ -61,6 +72,10 @@ if (!command) {
   program.command("mr").description("Merge Request based on current branch");
 
   program.command("status").description("Update Jira ticket status");
+
+  program
+    .command("open [dest]")
+    .description("Browse jira board, [board | backlog], default option board");
 
   program.parse();
 }
