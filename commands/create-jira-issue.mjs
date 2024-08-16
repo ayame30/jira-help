@@ -29,7 +29,7 @@ export default async (config) => {
               message: "Ticket Prefix",
               choices: config.projectChoices.map((choice) => ({
                 title: `${config.jiraTicketPrefix}${choice.title}`,
-                value: `${config.jiraTicketPrefix}${choice.title}`,
+                value: `${config.jiraTicketPrefix}${choice.value}`,
               })),
             },
           ]
