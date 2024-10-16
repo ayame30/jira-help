@@ -5,6 +5,7 @@ import { displayConfig } from "../utils.mjs";
 import { join } from "path";
 import JiraApiClient from "../api-clients/jira-api-client.mjs";
 import { homedir } from "os";
+import { execSync } from "child_process";
 
 const projectChoices = [
   { title: "(No Prefix)", value: "" },
@@ -28,6 +29,17 @@ const projectChoices = [
 ];
 
 const configDir = join(homedir(), "/.config/jira-help");
+
+const getGitRootDir = () => {
+  try {
+    return execSync("git rev-parse --show-toplevel", {
+      encoding: "utf-8",
+    }).trim();
+  } catch {
+    return null;
+  }
+};
+
 const configFilePath = join(configDir, "config.json");
 console.log(configFilePath);
 
@@ -42,7 +54,31 @@ export function saveConfig(config) {
 export function loadConfig() {
   if (fs.existsSync(configFilePath)) {
     const config = fs.readFileSync(configFilePath, "utf-8");
-    return JSON.parse(config);
+    let configJson = JSON.parse(config);
+
+    const gitRootDir = getGitRootDir();
+    if (!gitRootDir) {
+      return configJson;
+    }
+    const workspaceConfigFilePath = join(gitRootDir, "/.jira-help.json");
+    if (fs.existsSync(workspaceConfigFilePath)) {
+      const workspaceConfig = fs.readFileSync(workspaceConfigFilePath, "utf-8");
+      const workspaceConfigJson = JSON.parse(workspaceConfig);
+      if (workspaceConfigJson) {
+        console.log(workspaceConfigFilePath);
+        configJson = { ...configJson, ...workspaceConfigJson };
+      }
+    }
+    const repoConfigFilePath = join(gitRootDir, "/.vscode/settings.json");
+    if (fs.existsSync(repoConfigFilePath)) {
+      const repoConfig = fs.readFileSync(repoConfigFilePath, "utf-8");
+      const repoConfigJson = JSON.parse(repoConfig);
+      if (repoConfigJson.jiraHelp) {
+        console.log(repoConfigFilePath, "jiraHelp");
+        configJson = { ...configJson, ...repoConfigJson.jiraHelp };
+      }
+    }
+    return configJson;
   }
   console.error("Please setup config first");
   process.exit(1);

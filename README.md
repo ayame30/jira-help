@@ -23,6 +23,15 @@ Commands:
   help [command]  display help for command
 ```
 
+### Configuration
+
+Configuration can be stored in multiple locations:
+
+1. Global configuration file: `~/.config/jira-help/config.json
+2. Project-specific configuration file: `.jira-help.json` in the project root
+3. VSCode workspace settings: `.vscode/settings.json` with `jiraHelp` property
+
+
 ### Example
 ```dotnetcli
 
