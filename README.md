@@ -1,7 +1,7 @@
 ### Install
 
 ```
-npm install https://github.com/ayame30/jira-help
+npm install https://github.com/ayame30/jira-help -g
 ```
 
 ### Usage
