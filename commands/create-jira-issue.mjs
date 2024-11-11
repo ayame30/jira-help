@@ -71,8 +71,14 @@ export default async (config) => {
   };
 
   if (await confirm("Add to CurrentSprint?")) {
-    const currentSprint = await jiraApiClient.currentSprint(config.jiraBoardId);
-    data.fields.customfield_10010 = currentSprint.id;
+    try {
+      const currentSprint = await jiraApiClient.currentSprint(
+        config.jiraBoardId,
+      );
+      data.fields.customfield_10010 = currentSprint.id;
+    } catch {
+      console.log("No current sprint found");
+    }
   }
 
   data.fields.assignee = await selectAssignee(config);
