@@ -13,7 +13,7 @@ export default async (config) => {
   }
 
   if (await confirm("Checkout to commit?")) {
-    await createCommit(selectedIssue);
+    await createCommit(selectedIssue, config);
   }
 
   if (await confirm("Create MR?")) {
