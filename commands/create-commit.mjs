@@ -1,9 +1,78 @@
 import { promptText, execAsync } from "../utils.mjs";
 import prompts from "prompts";
+import { AzureOpenAI } from "openai";
+import chalk from "chalk";
 
-export default async (selectedIssue, _config) => {
+const typeChoices = [
+  { title: "feat", value: "feat" },
+  { title: "fix", value: "fix" },
+  { title: "update", value: "update" },
+  { title: "refactor", value: "refactor" },
+  { title: "test", value: "test" },
+  { title: "docs", value: "docs" },
+  { title: "chore", value: "chore" },
+];
+
+export default async (selectedIssue, config) => {
   const ticketNumber = selectedIssue.key;
   const cleanedString = selectedIssue.summary.replace(/\[.*?\]/g, "").trim();
+  await execAsync("git status");
+  await execAsync("git add .");
+
+  if (config.azureOpenAIConfig) {
+    const changes = await execAsync(
+      "git --no-pager diff --staged --minimal -U0 ':!*.lock' ':!package-lock.json'",
+    );
+
+    const openai = new AzureOpenAI(config.azureOpenAIConfig);
+    const changesMaxLength = config.azureOpenAIConfig.changesMaxLength || 4000;
+    const response = await openai.chat.completions.create({
+      model: config.azureOpenAIConfig.openaiModel || "gpt-4o-mini",
+      store: true,
+      messages: [
+        {
+          role: "system",
+          content: `Suggest 3 commit message options for the following changes,
+with prefix type either ${typeChoices.map((type) => type.value).join(", ")},
+You must output in JSON format
+<Output Format>
+{
+  "commitMessages": ["feat: Commit message 1", "fix: Commit message 2", "update: Commit message 3"]
+}
+</Output Format>
+
+<Changes>
+${changes.slice(0, changesMaxLength)}`,
+        },
+      ],
+    });
+
+    const { commitMessages } = JSON.parse(response.choices[0].message.content);
+    const { selectedCommitMessage } = await prompts(
+      [
+        {
+          type: "select",
+          name: "selectedCommitMessage",
+          message: "Commit message",
+          choices: [
+            ...commitMessages.map((commitMessage) => ({
+              title: `[${ticketNumber}] ${commitMessage}`,
+              value: commitMessage,
+            })),
+            { title: chalk.gray("...Custom"), value: { create: true } },
+          ],
+        },
+      ],
+      { onCancel: () => process.exit(0) },
+    );
+    if (!selectedCommitMessage.create) {
+      const [type, commitName] = selectedCommitMessage.split(":");
+      const message = `[${ticketNumber}] ${selectedCommitMessage}`;
+      await execAsync(`git commit -a -m "${message}"`);
+
+      return { type, commitName: commitName.trim() };
+    }
+  }
 
   const { type } = await prompts(
     [
@@ -11,28 +80,20 @@ export default async (selectedIssue, _config) => {
         type: "select",
         name: "type",
         message: "Commit type",
-        choices: [
-          { title: "feat", value: "feat" },
-          { title: "fix", value: "fix" },
-          { title: "update", value: "update" },
-          { title: "refactor", value: "refactor" },
-          { title: "test", value: "test" },
-          { title: "docs", value: "docs" },
-          { title: "chore", value: "chore" },
-        ],
+        choices: typeChoices,
       },
     ],
     { onCancel: () => process.exit(0) },
   );
-  await execAsync("git status");
+
   const commitName = await promptText(
     `Commit all changes - [${ticketNumber}] ${type}: `,
     cleanedString,
   );
-  await execAsync("git add .");
-  await execAsync(
-    `git commit -a -m "[${ticketNumber}] ${type}: ${commitName}"`,
-  );
 
-  return { type, commitName };
+  const message = `[${ticketNumber}] ${type}: ${commitName}`;
+
+  await execAsync(`git commit -a -m "${message}"`);
+
+  return { type, commitName: commitName.trim() };
 };
