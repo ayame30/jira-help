@@ -21,7 +21,7 @@ export default async (selectedIssue, config) => {
 
   if (config.azureOpenAIConfig) {
     const changes = await execAsync(
-      "git --no-pager diff --staged --minimal -U0 ':!*.lock' ':!package-lock.json'",
+      "git --no-pager diff --staged --minimal -U3 ':!*.lock' ':!package-lock.json'",
     );
 
     const openai = new AzureOpenAI(config.azureOpenAIConfig);
@@ -32,14 +32,20 @@ export default async (selectedIssue, config) => {
       messages: [
         {
           role: "system",
-          content: `Suggest 3 commit message options for the following changes,
-with prefix type either ${typeChoices.map((type) => type.value).join(", ")},
+          content: `Suggest 5 commit message options for the following changes,
+with prefix type ${typeChoices.map((type) => type.value).join(", ")},
+
 You must output in JSON format
 <Output Format>
 {
-  "commitMessages": ["feat: Commit message 1", "fix: Commit message 2", "update: Commit message 3"]
+  "commitMessages": [string]
 }
 </Output Format>
+
+<Sample>
+feat: update Readme.md
+feat: add business logic
+</Sample>
 
 <Changes>
 ${changes.slice(0, changesMaxLength)}`,
@@ -47,30 +53,45 @@ ${changes.slice(0, changesMaxLength)}`,
       ],
     });
 
-    const { commitMessages } = JSON.parse(response.choices[0].message.content);
-    const { selectedCommitMessage } = await prompts(
-      [
-        {
-          type: "select",
-          name: "selectedCommitMessage",
-          message: "Commit message",
-          choices: [
-            ...commitMessages.map((commitMessage) => ({
-              title: `[${ticketNumber}] ${commitMessage}`,
-              value: commitMessage,
-            })),
-            { title: chalk.gray("...Custom"), value: { create: true } },
-          ],
-        },
-      ],
-      { onCancel: () => process.exit(0) },
-    );
-    if (!selectedCommitMessage.create) {
-      const [type, commitName] = selectedCommitMessage.split(":");
-      const message = `[${ticketNumber}] ${selectedCommitMessage}`;
-      await execAsync(`git commit -a -m "${message}"`);
+    let commitMessages = [];
+    let success = false;
+    try {
+      const parsed = JSON.parse(
+        response.choices[0].message.content.replace(/```json\n|```/g, ""),
+      );
+      commitMessages = parsed.commitMessages;
+      success = true;
+    } catch (error) {
+      console.error(error);
+      console.log(response.choices[0].message.content);
+    }
+    if (success) {
+      const defaultCommitMessage = `[${ticketNumber}] feat: ${cleanedString}`;
+      const { selectedCommitMessage } = await prompts(
+        [
+          {
+            type: "select",
+            name: "selectedCommitMessage",
+            message: "Commit message",
+            choices: [
+              { title: defaultCommitMessage, value: defaultCommitMessage },
+              ...commitMessages.map((commitMessage) => ({
+                title: `[${ticketNumber}] ${commitMessage}`,
+                value: commitMessage,
+              })),
+              { title: chalk.gray("...Custom"), value: { create: true } },
+            ],
+          },
+        ],
+        { onCancel: () => process.exit(0) },
+      );
+      if (!selectedCommitMessage.create) {
+        const [type, commitName] = selectedCommitMessage.split(":");
+        const message = `[${ticketNumber}] ${selectedCommitMessage}`;
+        await execAsync(`git commit -a -m "${message}"`);
 
-      return { type, commitName: commitName.trim() };
+        return { type, commitName: commitName.trim() };
+      }
     }
   }
 
