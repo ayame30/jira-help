@@ -66,7 +66,7 @@ ${changes.slice(0, changesMaxLength)}`,
       console.log(response.choices[0].message.content);
     }
     if (success) {
-      const defaultCommitMessage = `[${ticketNumber}] feat: ${cleanedString}`;
+      const defaultCommitMessage = `feat: ${cleanedString}`;
       const { selectedCommitMessage } = await prompts(
         [
           {
